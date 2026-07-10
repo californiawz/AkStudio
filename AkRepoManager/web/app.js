@@ -3,8 +3,6 @@ let flatNodes = [];
 let selected = null;
 let filter = 'all';
 let collapsedPaths = new Set();
-let apps = [];
-
 
 
 const $ = (id) => document.getElementById(id);
@@ -19,59 +17,7 @@ async function api(url, options = {}) {
   return data;
 }
 
-async function loadApps() {
-  try {
-    const data = await api('/api/apps');
-    apps = data.apps || [];
-    renderApps();
-  } catch (err) {
-    $('appGrid').innerHTML = `<div class="empty small">${escapeHtml(err.message)}</div>`;
-  }
-}
-
-function renderApps() {
-  const grid = $('appGrid');
-  grid.innerHTML = '';
-  for (const app of apps) {
-    const card = document.createElement('div');
-    card.className = `app-card ${app.exists ? '' : 'disabled'}`;
-    const state = app.running ? '运行中' : (app.exists ? '可启动' : '未拉取');
-    const stateClass = app.running ? 'clean' : (app.exists ? 'ahead' : 'missing');
-    card.innerHTML = `
-      <div class="app-head">
-        <div>
-          <div class="app-name">${escapeHtml(app.title)}</div>
-          <div class="app-module">${escapeHtml(app.name)}</div>
-        </div>
-        <span class="status-pill ${stateClass}">${state}</span>
-      </div>
-      <p>${escapeHtml(app.description)}</p>
-      <code>${escapeHtml(app.path)}</code>
-      <div class="app-actions">
-        <button class="primary" data-launch="${escapeHtml(app.id)}">打开/启动</button>
-      </div>
-    `;
-    card.querySelector('[data-launch]').onclick = () => launchApp(app.id);
-    grid.appendChild(card);
-  }
-}
-
-async function launchApp(id) {
-  const hostConsole = $('console');
-  if (hostConsole) hostConsole.textContent = '正在打开能力入口...';
-  try {
-    const data = await api('/api/app/launch', { method: 'POST', body: JSON.stringify({ id }) });
-    if (data.url) window.open(data.url, '_blank');
-    if (hostConsole) hostConsole.textContent = data.message || '已打开。';
-    await loadApps();
-  } catch (err) {
-    if (hostConsole) hostConsole.textContent = err.message;
-    else alert(err.message);
-  }
-}
-
 function flatten(nodes, depth = 0, parent = null) {
-
   return nodes.flatMap((node) => {
     const item = { ...node, depth, parent };
     return [item, ...flatten(node.children || [], depth + 1, item)];
@@ -335,6 +281,4 @@ document.querySelectorAll('[data-action]').forEach((btn) => {
   btn.onclick = () => runAction(btn.dataset.action);
 });
 
-loadApps();
 refresh();
-
