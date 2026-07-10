@@ -1,7 +1,25 @@
 let apps = [];
 const $ = (id) => document.getElementById(id);
 
+function applyTheme(theme) {
+  document.body.dataset.theme = theme;
+  localStorage.setItem('akstudio.portal.theme', theme);
+  $('themeToggleBtn').textContent = theme === 'dark' ? '白色模式' : '黑色模式';
+}
+
+function toggleTheme() {
+  applyTheme(document.body.dataset.theme === 'dark' ? 'light' : 'dark');
+}
+
+function fullscreenFrame(tabId) {
+  const frame = document.querySelector(`.tool-frame[data-tab="${tabId}"]`);
+  if (!frame) return;
+  const request = frame.requestFullscreen || frame.webkitRequestFullscreen || frame.msRequestFullscreen;
+  if (request) request.call(frame);
+}
+
 async function api(url, options = {}) {
+
   const response = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...options });
   const data = await response.json();
   if (!data.ok) throw new Error(data.error || data.message || '操作失败');
@@ -66,8 +84,17 @@ function openTab(app, url) {
     tab = document.createElement('button');
     tab.className = 'tab';
     tab.dataset.tab = id;
-    tab.innerHTML = `${escapeHtml(app.title)} <span class="tab-close">×</span>`;
+    const fullscreenButton = app.id === 'lua-viewer' ? '<span class="tab-fullscreen" title="全屏 Lua Viewer">全屏</span>' : '';
+    tab.innerHTML = `${escapeHtml(app.title)} ${fullscreenButton} <span class="tab-close">×</span>`;
     tab.onclick = () => activateTab(id, app.id);
+    const fullscreen = tab.querySelector('.tab-fullscreen');
+    if (fullscreen) {
+      fullscreen.onclick = (event) => {
+        event.stopPropagation();
+        activateTab(id, app.id);
+        fullscreenFrame(id);
+      };
+    }
     tab.querySelector('.tab-close').onclick = (event) => {
       event.stopPropagation();
       tab.remove();
@@ -75,6 +102,7 @@ function openTab(app, url) {
       showHome();
     };
     $('tabBar').appendChild(tab);
+
   }
 
   let frame = document.querySelector(`.tool-frame[data-tab="${id}"]`);
@@ -82,8 +110,10 @@ function openTab(app, url) {
     frame = document.createElement('iframe');
     frame.className = 'tool-frame';
     frame.dataset.tab = id;
+    frame.allow = 'fullscreen';
     frame.src = url;
     $('frameHost').appendChild(frame);
+
   } else if (frame.src !== url) {
     frame.src = url;
   }
@@ -109,8 +139,11 @@ async function launchApp(id) {
   }
 }
 
+$('themeToggleBtn').onclick = toggleTheme;
+applyTheme(localStorage.getItem('akstudio.portal.theme') || 'light');
 $('refreshAppsBtn').onclick = loadApps;
 document.querySelectorAll('[data-open-app]').forEach((item) => {
+
   item.onclick = () => launchApp(item.dataset.openApp);
 });
 document.querySelector('[data-tab="home"]').onclick = showHome;
