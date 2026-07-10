@@ -1,5 +1,8 @@
 let apps = [];
+let activeTabId = null;
+let activeAppId = 'home';
 const $ = (id) => document.getElementById(id);
+
 
 function applyTheme(theme) {
   document.body.dataset.theme = theme;
@@ -22,15 +25,25 @@ function toggleSidebar() {
   applySidebarCollapsed(!document.querySelector('.layout').classList.contains('sidebar-collapsed'));
 }
 
-function fullscreenFrame(tabId) {
+function updateFullscreenButton() {
+  const button = $('fullscreenActiveBtn');
+  button.classList.toggle('hidden', activeAppId !== 'lua-viewer' || !activeTabId);
+}
 
-  const frame = document.querySelector(`.tool-frame[data-tab="${tabId}"]`);
-  if (!frame) return;
-  const request = frame.requestFullscreen || frame.webkitRequestFullscreen || frame.msRequestFullscreen;
-  if (request) request.call(frame);
+function enterToolFullscreen(tabId = activeTabId) {
+  if (!tabId) return;
+  activateTab(tabId, 'lua-viewer');
+  document.body.classList.add('tool-fullscreen');
+  $('exitFullscreenBtn').classList.remove('hidden');
+}
+
+function exitToolFullscreen() {
+  document.body.classList.remove('tool-fullscreen');
+  $('exitFullscreenBtn').classList.add('hidden');
 }
 
 async function api(url, options = {}) {
+
 
   const response = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...options });
   const data = await response.json();
@@ -68,9 +81,15 @@ function renderApps() {
       </div>
       <p>${escapeHtml(app.description)}</p>
       <code>${escapeHtml(app.path)}</code>
-      <button data-launch="${escapeHtml(app.id)}">打开 / 启动</button>
+      <div class="app-actions">
+        <button data-launch="${escapeHtml(app.id)}">打开 / 启动</button>
+        ${app.id === 'lua-viewer' ? `<button data-launch-fullscreen="${escapeHtml(app.id)}">全屏阅读</button>` : ''}
+      </div>
     `;
     card.querySelector('[data-launch]').onclick = () => launchApp(app.id);
+    const fullscreenLaunch = card.querySelector('[data-launch-fullscreen]');
+    if (fullscreenLaunch) fullscreenLaunch.onclick = () => launchApp(app.id, true);
+
     grid.appendChild(card);
   }
 }
@@ -82,11 +101,16 @@ function setActiveNav(id) {
 }
 
 function showHome() {
+  exitToolFullscreen();
+  activeTabId = null;
+  activeAppId = 'home';
   $('homeView').classList.add('active');
   document.querySelectorAll('.tool-frame').forEach((frame) => frame.classList.remove('active'));
   document.querySelectorAll('.tab').forEach((tab) => tab.classList.remove('active'));
   setActiveNav('home');
+  updateFullscreenButton();
 }
+
 
 function openTab(app, url) {
   $('homeView').classList.remove('active');
@@ -96,16 +120,17 @@ function openTab(app, url) {
     tab = document.createElement('button');
     tab.className = 'tab';
     tab.dataset.tab = id;
-    const fullscreenButton = app.id === 'lua-viewer' ? '<span class="tab-fullscreen" title="全屏 Lua Viewer">全屏</span>' : '';
+    const fullscreenButton = app.id === 'lua-viewer' ? '<span class="tab-fullscreen" title="全屏阅读 Lua Viewer">全屏阅读</span>' : '';
     tab.innerHTML = `${escapeHtml(app.title)} ${fullscreenButton} <span class="tab-close">×</span>`;
+
     tab.onclick = () => activateTab(id, app.id);
     const fullscreen = tab.querySelector('.tab-fullscreen');
     if (fullscreen) {
       fullscreen.onclick = (event) => {
         event.stopPropagation();
-        activateTab(id, app.id);
-        fullscreenFrame(id);
+        enterToolFullscreen(id);
       };
+
     }
     tab.querySelector('.tab-close').onclick = (event) => {
       event.stopPropagation();
@@ -133,26 +158,38 @@ function openTab(app, url) {
 }
 
 function activateTab(tabId, appId) {
+  activeTabId = tabId;
+  activeAppId = appId;
   $('homeView').classList.remove('active');
   document.querySelectorAll('.tab').forEach((tab) => tab.classList.toggle('active', tab.dataset.tab === tabId));
   document.querySelectorAll('.tool-frame').forEach((frame) => frame.classList.toggle('active', frame.dataset.tab === tabId));
   setActiveNav(appId);
+  updateFullscreenButton();
 }
 
-async function launchApp(id) {
+async function launchApp(id, fullscreen = false) {
+
   const app = apps.find((item) => item.id === id);
   if (!app) return;
   try {
     const data = await api('/api/app/launch', { method: 'POST', body: JSON.stringify({ id }) });
     if (data.url) openTab(app, data.url);
+    if (fullscreen && id === 'lua-viewer') enterToolFullscreen(`tab-${id}`);
     await loadApps();
+
   } catch (err) {
     alert(err.message);
   }
 }
 
+$('fullscreenActiveBtn').onclick = () => enterToolFullscreen(activeTabId);
+$('exitFullscreenBtn').onclick = exitToolFullscreen;
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') exitToolFullscreen();
+});
 $('themeToggleBtn').onclick = toggleTheme;
 applyTheme(localStorage.getItem('akstudio.portal.theme') || 'light');
+
 $('sidebarToggleBtn').onclick = toggleSidebar;
 applySidebarCollapsed(localStorage.getItem('akstudio.portal.sidebarCollapsed') === '1');
 $('refreshAppsBtn').onclick = loadApps;
