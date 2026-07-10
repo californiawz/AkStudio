@@ -13,3 +13,8 @@
 	path = LuaProjectViewer
 	url = https://github.com/californiawz/LuaProjectViewer.git
 	branch = main
+[submodule "TheWildsGame"]
+	path = TheWildsGame
+	url = https://github.com/californiawz/TheWildsGame.git
+	branch = main
+
