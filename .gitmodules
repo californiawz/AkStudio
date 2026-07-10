@@ -21,4 +21,4 @@
 [submodule "Obsidian"]
 	path = Obsidian
 	url = https://github.com/californiawz/Obsidian.git
-	branch = master
+	branch = main
