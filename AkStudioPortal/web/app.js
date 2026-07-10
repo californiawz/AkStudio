@@ -172,7 +172,8 @@ async function launchApp(id, fullscreen = false) {
   try {
     const data = await api('/api/app/launch', { method: 'POST', body: JSON.stringify({ id }) });
     if (data.url) openTab(app, data.url);
-    if (fullscreen && id === 'lua-viewer') enterToolFullscreen(`tab-${id}`);
+    if (fullscreen && app.kind === 'web') enterToolFullscreen(`tab-${id}`);
+
     await loadApps();
 
   } catch (err) {
