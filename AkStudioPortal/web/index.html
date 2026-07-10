@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AkStudio Dashboard</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="mark">AK</div>
+        <div>
+          <h1>AkStudio</h1>
+          <p>Game Dev Dashboard</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-tab="home">Dashboard</button>
+        <button class="nav-item" data-open-app="repo-manager">Repositories</button>
+        <button class="nav-item" data-open-app="builder">Build & Release</button>
+        <button class="nav-item" data-open-app="lua-viewer">Lua Viewer</button>
+        <button class="nav-item" data-open-app="obsidian">AI Memory</button>
+      </nav>
+
+      <div class="side-box">
+        <strong>设计原则</strong>
+        <span>入口统一，能力独立；各工具仍在自己的模块里运行。</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2>Dashboard</h2>
+          <p>统一进入仓库管理、构建发布、Lua 阅读器和 AI 记忆库。</p>
+        </div>
+        <button id="refreshAppsBtn">刷新状态</button>
+      </header>
+
+      <section class="notice">
+        <strong>本地工作台</strong>
+        <span>参考 GitHub Dashboard 的浅色、卡片、侧栏和 Tab 工作区布局。这里不复制业务逻辑，只统一入口。</span>
+      </section>
+
+      <section id="homeView" class="view active">
+        <div id="appGrid" class="app-grid"></div>
+      </section>
+
+      <section class="workspace">
+        <div id="tabBar" class="tab-bar"></div>
+        <div id="frameHost" class="frame-host"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
