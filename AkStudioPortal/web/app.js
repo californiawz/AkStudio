@@ -11,7 +11,19 @@ function toggleTheme() {
   applyTheme(document.body.dataset.theme === 'dark' ? 'light' : 'dark');
 }
 
+function applySidebarCollapsed(collapsed) {
+  document.querySelector('.layout').classList.toggle('sidebar-collapsed', collapsed);
+  localStorage.setItem('akstudio.portal.sidebarCollapsed', collapsed ? '1' : '0');
+  $('sidebarToggleBtn').textContent = collapsed ? '›' : '‹';
+  $('sidebarToggleBtn').title = collapsed ? '展开侧栏' : '收起侧栏';
+}
+
+function toggleSidebar() {
+  applySidebarCollapsed(!document.querySelector('.layout').classList.contains('sidebar-collapsed'));
+}
+
 function fullscreenFrame(tabId) {
+
   const frame = document.querySelector(`.tool-frame[data-tab="${tabId}"]`);
   if (!frame) return;
   const request = frame.requestFullscreen || frame.webkitRequestFullscreen || frame.msRequestFullscreen;
@@ -141,7 +153,10 @@ async function launchApp(id) {
 
 $('themeToggleBtn').onclick = toggleTheme;
 applyTheme(localStorage.getItem('akstudio.portal.theme') || 'light');
+$('sidebarToggleBtn').onclick = toggleSidebar;
+applySidebarCollapsed(localStorage.getItem('akstudio.portal.sidebarCollapsed') === '1');
 $('refreshAppsBtn').onclick = loadApps;
+
 document.querySelectorAll('[data-open-app]').forEach((item) => {
 
   item.onclick = () => launchApp(item.dataset.openApp);

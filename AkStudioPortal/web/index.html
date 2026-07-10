@@ -10,25 +10,24 @@
   <div class="layout">
     <aside class="sidebar">
       <div class="brand">
-        <div class="mark">AK</div>
-        <div>
-          <h1>AkStudio</h1>
-          <p>Game Dev Dashboard</p>
+        <div class="brand-main">
+          <div class="mark">AK</div>
+          <div class="brand-copy">
+            <h1>AkStudio</h1>
+            <p>Game Dev Dashboard</p>
+          </div>
         </div>
+        <button id="sidebarToggleBtn" class="sidebar-toggle" title="收起侧栏">‹</button>
       </div>
 
       <nav class="nav">
-        <button class="nav-item active" data-tab="home">Dashboard</button>
-        <button class="nav-item" data-open-app="repo-manager">Repositories</button>
-        <button class="nav-item" data-open-app="builder">Build & Release</button>
-        <button class="nav-item" data-open-app="lua-viewer">Lua Viewer</button>
-        <button class="nav-item" data-open-app="obsidian">AI Memory</button>
+        <button class="nav-item active" data-tab="home" data-short="DB">Dashboard</button>
+        <button class="nav-item" data-open-app="repo-manager" data-short="RM">Repositories</button>
+        <button class="nav-item" data-open-app="builder" data-short="BD">Build & Release</button>
+        <button class="nav-item" data-open-app="lua-viewer" data-short="LV">Lua Viewer</button>
+        <button class="nav-item" data-open-app="obsidian" data-short="AI">AI Memory</button>
       </nav>
 
-      <div class="side-box">
-        <strong>设计原则</strong>
-        <span>入口统一，能力独立；各工具仍在自己的模块里运行。</span>
-      </div>
     </aside>
 
     <main class="main">
