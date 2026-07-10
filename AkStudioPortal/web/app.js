@@ -4,15 +4,37 @@ let activeAppId = 'home';
 const $ = (id) => document.getElementById(id);
 
 
+function currentTheme() {
+  return document.body.dataset.theme || 'light';
+}
+
+function withTheme(url) {
+  const parsed = new URL(url, window.location.href);
+  parsed.searchParams.set('theme', currentTheme());
+  return parsed.toString();
+}
+
+function syncOpenFramesTheme() {
+  document.querySelectorAll('.tool-frame').forEach((frame) => {
+    try {
+      frame.contentWindow?.postMessage({ type: 'ak-theme', theme: currentTheme() }, '*');
+    } catch (_) {}
+    const themed = withTheme(frame.src);
+    if (frame.src !== themed) frame.src = themed;
+  });
+}
+
 function applyTheme(theme) {
   document.body.dataset.theme = theme;
   localStorage.setItem('akstudio.portal.theme', theme);
   $('themeToggleBtn').textContent = theme === 'dark' ? '白色模式' : '黑色模式';
+  syncOpenFramesTheme();
 }
 
 function toggleTheme() {
-  applyTheme(document.body.dataset.theme === 'dark' ? 'light' : 'dark');
+  applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
 }
+
 
 function applySidebarCollapsed(collapsed) {
   document.querySelector('.layout').classList.toggle('sidebar-collapsed', collapsed);
@@ -144,18 +166,20 @@ function openTab(app, url) {
 
   }
 
+  const themedUrl = withTheme(url);
   let frame = document.querySelector(`.tool-frame[data-tab="${id}"]`);
   if (!frame) {
     frame = document.createElement('iframe');
     frame.className = 'tool-frame';
     frame.dataset.tab = id;
     frame.allow = 'fullscreen';
-    frame.src = url;
+    frame.src = themedUrl;
     $('frameHost').appendChild(frame);
 
-  } else if (frame.src !== url) {
-    frame.src = url;
+  } else if (frame.src !== themedUrl) {
+    frame.src = themedUrl;
   }
+
   activateTab(id, app.id);
 }
 
