@@ -195,7 +195,19 @@ async function runAction(action, target = selected) {
   if (target !== selected) {
     selectNode(target);
   }
-  $('console').textContent = '执行中，请等待。首次拉取可能需要较长时间...';
+  const runningText = {
+    commit_push: '正在提交并推送到远端，请等待...',
+    commit: '正在本地提交，请等待...',
+    push: '正在推送到远端，请等待...',
+    pull: '正在 Pull 远端更新，请等待...',
+    status: '正在读取仓库状态，请等待...',
+    open_folder: '正在打开目录...',
+    update_submodules: '正在更新子模块，请等待...',
+    init_recommended: '正在首次拉取推荐仓库，请等待。首次拉取可能需要较长时间...',
+    init_all: '正在首次拉取全部仓库，请等待。首次拉取可能需要较长时间...',
+    init_selected: '正在首次拉取该仓库及子模块，请等待。首次拉取可能需要较长时间...',
+  };
+  $('console').textContent = runningText[action] || '执行中，请等待...';
   try {
     const data = await api('/api/action', { method: 'POST', body: JSON.stringify(body) });
     $('console').textContent = data.output || '完成';
