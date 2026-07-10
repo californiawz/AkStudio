@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AkStudio 仓库管理器</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">AK</div>
+        <div>
+          <h1>AkStudio</h1>
+          <p>Repository Hub</p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div><strong id="repoCount">0</strong><span>仓库</span></div>
+        <div><strong id="dirtyCount">0</strong><span>有变更</span></div>
+      </div>
+
+      <nav>
+        <button class="nav active" data-filter="all">全部仓库</button>
+        <button class="nav" data-filter="public">公共仓库</button>
+        <button class="nav" data-filter="project">项目仓库</button>
+        <button class="nav" data-filter="submodule">项目内仓库</button>
+        <button class="nav" data-filter="modules">.gitmodules</button>
+
+      </nav>
+
+      <div class="hint">
+        <span>说明</span>
+        父仓库只提交 <code>.gitmodules</code> 和 gitlink，子仓库内容仍独立管理。
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2>仓库关联总览</h2>
+          <p>自动读取 <code>.gitmodules</code>，管理公共仓库、项目仓库、项目内仓库。</p>
+        </div>
+        <div class="toolbar">
+          <button class="primary" id="refreshBtn">扫描</button>
+          <button id="addPublicBtn">新增公共仓库</button>
+          <button id="addProjectBtn">新增项目仓库</button>
+          <button id="addSubmoduleBtn">新增关联</button>
+        </div>
+      </header>
+
+      <section class="grid">
+        <div class="panel repo-panel">
+          <div class="panel-title repo-title">
+            <span>仓库列表</span>
+            <div class="repo-tools">
+              <button id="expandAllBtn">展开全部</button>
+              <button id="collapseAllBtn">折叠全部</button>
+              <input id="searchInput" placeholder="搜索名称、路径、远程地址..." />
+            </div>
+          </div>
+
+          <div id="repoTree" class="repo-tree"></div>
+        </div>
+
+        <div class="panel detail-panel">
+          <div class="panel-title"><span>详情与操作</span></div>
+          <div id="emptyState" class="empty">选择左侧仓库查看详情</div>
+          <div id="detail" class="detail hidden">
+            <div class="detail-head">
+              <div>
+                <div id="detailType" class="badge">-</div>
+                <h3 id="detailName">-</h3>
+              </div>
+              <div id="detailStatus" class="status-pill">-</div>
+            </div>
+
+            <div class="kv">
+              <label>路径</label><code id="detailPath">-</code>
+              <label>父仓库</label><span id="detailParent">-</span>
+              <label>分支</label><span id="detailBranch">-</span>
+
+              <label>提交</label><span id="detailHead">-</span>
+              <label>远程</label><code id="detailUrl">-</code>
+            </div>
+
+            <div class="actions">
+              <button class="primary wide-action" data-action="commit_push">提交并推送到远端</button>
+              <button class="wide-action" data-action="open_folder">打开目录</button>
+              <button data-action="status">状态</button>
+
+              <button data-action="pull">Pull</button>
+              <button data-action="commit">仅本地提交</button>
+              <button data-action="push">仅推送到远端</button>
+              <button class="wide-action" data-action="update_submodules">更新子模块</button>
+            </div>
+
+
+            <pre id="console"></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="pathDialog">
+    <form method="dialog" class="dialog-card">
+      <h3 id="pathDialogTitle">新增仓库</h3>
+      <label>仓库绝对路径</label>
+      <input id="pathInput" placeholder="E:\\AkStudio\\YourRepo" />
+      <div class="dialog-actions">
+        <button value="cancel">取消</button>
+        <button class="primary" id="pathConfirm" value="default">确认</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="submoduleDialog">
+    <form method="dialog" class="dialog-card wide">
+      <h3>新增子仓库关联</h3>
+      <p>会在选中的父仓库中维护 <code>.gitmodules</code>，并添加 gitlink。</p>
+      <label>父仓库</label>
+      <input id="subParent" disabled />
+      <label>名称</label>
+      <input id="subName" placeholder="TheWildsGame" />
+      <label>相对路径</label>
+      <input id="subPath" placeholder="TheWildsGame 或 Plugins/MyRepo" />
+      <label>远程地址</label>
+      <input id="subUrl" placeholder="https://github.com/user/repo.git" />
+      <label>分支</label>
+      <input id="subBranch" value="main" />
+      <div class="dialog-actions">
+        <button value="cancel">取消</button>
+        <button class="primary" id="subConfirm" value="default">添加关联</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/app.js"></script>
+</body>
+</html>
