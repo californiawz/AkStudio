@@ -57,9 +57,10 @@ body {
 
 button, input { font: inherit; }
 button {
-  border: 1px solid rgba(31, 35, 40, 0.15);
+  border: 1px solid var(--border);
   color: var(--text);
-  background: #f6f8fa;
+  background: var(--button-bg);
+
   border-radius: 6px;
   padding: 6px 12px;
   cursor: pointer;
@@ -67,7 +68,8 @@ button {
   line-height: 20px;
   transition: background .12s ease, border-color .12s ease;
 }
-button:hover { background: #f3f4f6; border-color: rgba(31, 35, 40, 0.25); }
+button:hover { background: var(--button-hover); border-color: var(--border); }
+
 button.primary {
   color: #ffffff;
   background: #1f883d;
@@ -77,8 +79,9 @@ button.primary:hover { background: #1a7f37; }
 input {
   width: 100%;
   color: var(--text);
-  background: #ffffff;
+  background: var(--canvas-subtle);
   border: 1px solid var(--border);
+
   border-radius: 6px;
   padding: 7px 12px;
   outline: none;
@@ -110,8 +113,9 @@ nav { display: grid; gap: 4px; margin-bottom: 16px; }
   width: 100%; text-align: left; border: 0; background: transparent; border-radius: 6px;
   padding: 8px 10px; color: var(--text); font-weight: 600;
 }
-.nav:hover { background: #f6f8fa; }
-.nav.active { background: #ddf4ff; color: #0969da; }
+.nav:hover { background: var(--button-hover); }
+.nav.active { background: var(--active-bg); color: var(--accent); }
+
 .hint {
   padding: 12px; color: var(--muted); line-height: 1.6;
   border: 1px solid var(--border); border-radius: 6px; background: var(--canvas);
@@ -147,21 +151,25 @@ nav { display: grid; gap: 4px; margin-bottom: 16px; }
 .repo-card {
   margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--border-muted);
 
-  background: #ffffff; cursor: pointer; transition: background .12s ease;
+  background: var(--canvas-subtle); cursor: pointer; transition: background .12s ease;
 }
-.repo-card:hover, .repo-card.active { background: #f6f8fa; }
+.repo-card:hover, .repo-card.active { background: var(--canvas); }
+
 .repo-card.active { box-shadow: inset 3px 0 0 var(--accent); }
-.repo-card.ancestor { background: #fbfcfd; }
+.repo-card.ancestor { background: var(--canvas); }
+
 .repo-card.ancestor .repo-name { color: var(--muted); }
 .repo-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
 
-.repo-name { font-weight: 600; display: flex; gap: 8px; align-items: center; color: #0969da; min-width: 0; }
+.repo-name { font-weight: 600; display: flex; gap: 8px; align-items: center; color: var(--accent); min-width: 0; }
+
 .tree-toggle {
   width: 22px; height: 22px; padding: 0; display: inline-grid; place-items: center;
   border: 0; background: transparent; color: var(--muted); font-size: 18px; line-height: 1;
   flex: 0 0 auto;
 }
-.tree-toggle:hover { background: #eaeef2; }
+.tree-toggle:hover { background: var(--button-hover); }
+
 .tree-toggle.empty { cursor: default; visibility: hidden; }
 .repo-name span {
 
@@ -189,7 +197,8 @@ nav { display: grid; gap: 4px; margin-bottom: 16px; }
 .detail h3 { margin: 8px 0 0; font-size: 26px; font-weight: 600; }
 .kv {
   display: grid; grid-template-columns: 72px 1fr; gap: 10px; padding: 12px;
-  border: 1px solid var(--border); border-radius: 6px; background: #f6f8fa;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--canvas);
+
 }
 .kv label { color: var(--muted); }
 .kv code, .kv span { word-break: break-all; }
