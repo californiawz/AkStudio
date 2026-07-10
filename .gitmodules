@@ -18,3 +18,7 @@
 	url = https://github.com/californiawz/TheWildsGame.git
 	branch = main
 
+[submodule "Obsidian"]
+	path = Obsidian
+	url = https://github.com/californiawz/Obsidian.git
+	branch = master
