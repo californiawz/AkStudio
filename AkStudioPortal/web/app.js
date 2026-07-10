@@ -83,7 +83,8 @@ function renderApps() {
       <code>${escapeHtml(app.path)}</code>
       <div class="app-actions">
         <button data-launch="${escapeHtml(app.id)}">打开 / 启动</button>
-        ${app.id === 'lua-viewer' ? `<button data-launch-fullscreen="${escapeHtml(app.id)}">全屏阅读</button>` : ''}
+        ${app.id === 'lua-viewer' ? `<button data-launch-fullscreen="${escapeHtml(app.id)}">全屏</button>` : ''}
+
       </div>
     `;
     card.querySelector('[data-launch]').onclick = () => launchApp(app.id);
@@ -120,7 +121,8 @@ function openTab(app, url) {
     tab = document.createElement('button');
     tab.className = 'tab';
     tab.dataset.tab = id;
-    const fullscreenButton = app.id === 'lua-viewer' ? '<span class="tab-fullscreen" title="全屏阅读 Lua Viewer">全屏阅读</span>' : '';
+    const fullscreenButton = app.id === 'lua-viewer' ? '<span class="tab-fullscreen" title="全屏">全屏</span>' : '';
+
     tab.innerHTML = `${escapeHtml(app.title)} ${fullscreenButton} <span class="tab-close">×</span>`;
 
     tab.onclick = () => activateTab(id, app.id);
