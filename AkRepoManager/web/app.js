@@ -212,6 +212,29 @@ function rootNode() {
   return allNodes[0] || null;
 }
 
+function setAppFullscreen(on) {
+  document.body.classList.toggle('app-fullscreen', on);
+  $('fullscreenBtn').classList.toggle('hidden', on);
+}
+
+async function enterAppFullscreen() {
+  setAppFullscreen(true);
+  try {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (_) {}
+}
+
+async function exitAppFullscreen() {
+  setAppFullscreen(false);
+  try {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      await document.exitFullscreen();
+    }
+  } catch (_) {}
+}
+
 
 function openPathDialog(key, title) {
   $('pathDialogTitle').textContent = title;
@@ -255,6 +278,10 @@ function openSubmoduleDialog() {
   };
 }
 
+$('fullscreenBtn').onclick = enterAppFullscreen;
+
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) setAppFullscreen(false); });
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && document.body.classList.contains('app-fullscreen')) exitAppFullscreen(); });
 $('refreshBtn').onclick = refresh;
 $('initRecommendedBtn').onclick = () => runAction('init_recommended', rootNode());
 $('initAllBtn').onclick = () => runAction('init_all', rootNode());

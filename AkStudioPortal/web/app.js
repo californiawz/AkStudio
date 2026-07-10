@@ -18,21 +18,31 @@ function toggleSidebar() {
   applySidebarCollapsed(!document.querySelector('.layout').classList.contains('sidebar-collapsed'));
 }
 
+function getApp(id) {
+  return apps.find((item) => item.id === id);
+}
+
+function isWebApp(id) {
+  return getApp(id)?.kind === 'web';
+}
+
 function updateFullscreenButton() {
   const button = $('fullscreenActiveBtn');
-  button.classList.toggle('hidden', activeAppId !== 'lua-viewer' || !activeTabId);
+  button.classList.toggle('hidden', !activeTabId || !isWebApp(activeAppId) || document.body.classList.contains('tool-fullscreen'));
 }
 
 function enterToolFullscreen(tabId = activeTabId) {
   if (!tabId) return;
-  activateTab(tabId, 'lua-viewer');
+  const appId = tabId.replace(/^tab-/, '');
+  if (!isWebApp(appId)) return;
+  activateTab(tabId, appId);
   document.body.classList.add('tool-fullscreen');
-  $('exitFullscreenBtn').classList.remove('hidden');
+  updateFullscreenButton();
 }
 
 function exitToolFullscreen() {
   document.body.classList.remove('tool-fullscreen');
-  $('exitFullscreenBtn').classList.add('hidden');
+  updateFullscreenButton();
 }
 
 async function api(url, options = {}) {
@@ -76,7 +86,7 @@ function renderApps() {
       <code>${escapeHtml(app.path)}</code>
       <div class="app-actions">
         <button data-launch="${escapeHtml(app.id)}">打开 / 启动</button>
-        ${app.id === 'lua-viewer' ? `<button data-launch-fullscreen="${escapeHtml(app.id)}">全屏</button>` : ''}
+        ${app.kind === 'web' ? `<button data-launch-fullscreen="${escapeHtml(app.id)}">全屏</button>` : ''}
 
       </div>
     `;
@@ -114,7 +124,8 @@ function openTab(app, url) {
     tab = document.createElement('button');
     tab.className = 'tab';
     tab.dataset.tab = id;
-    const fullscreenButton = app.id === 'lua-viewer' ? '<span class="tab-fullscreen" title="全屏">全屏</span>' : '';
+    const fullscreenButton = app.kind === 'web' ? '<span class="tab-fullscreen" title="全屏">全屏</span>' : '';
+
 
     tab.innerHTML = `${escapeHtml(app.title)} ${fullscreenButton} <span class="tab-close">×</span>`;
 
@@ -182,7 +193,6 @@ async function launchApp(id, fullscreen = false) {
 }
 
 $('fullscreenActiveBtn').onclick = () => enterToolFullscreen(activeTabId);
-$('exitFullscreenBtn').onclick = exitToolFullscreen;
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') exitToolFullscreen();
 });
