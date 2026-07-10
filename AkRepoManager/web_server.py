@@ -10,7 +10,8 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from ak_repo_manager.config_store import ConfigStore
-from ak_repo_manager.git_utils import add_existing_submodule, commit_all, commit_and_push, pull, push, run_git, update_submodules
+from ak_repo_manager.git_utils import add_existing_submodule, commit_all, commit_and_push, init_submodules, pull, push, run_git, update_submodules
+
 
 from ak_repo_manager.repo_scanner import CATEGORY_LABELS, RepoNode, scan_config
 
@@ -134,7 +135,12 @@ class Handler(BaseHTTPRequestHandler):
         elif action == "update_submodules":
 
             result = update_submodules(path)
+        elif action == "init_recommended":
+            result = init_submodules(path, include_unreal_engine=False)
+        elif action == "init_all" or action == "init_selected":
+            result = init_submodules(path, include_unreal_engine=True)
         elif action == "status":
+
             result = run_git(path, ["status", "--short", "--branch"])
         else:
             json_response(self, {"ok": False, "error": "未知操作"}, 400)

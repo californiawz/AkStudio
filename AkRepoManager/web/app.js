@@ -178,16 +178,21 @@ async function refresh() {
   }
 }
 
-async function runAction(action) {
-  if (!selected) return alert('请先选择仓库');
-  const body = { action, path: selected.path };
-  if (action === 'commit' || (action === 'commit_push' && selected.status?.dirty)) {
+async function runAction(action, target = selected) {
+  if (!target) return alert('请先选择仓库');
+  if (action === 'init_all' && !confirm('首次拉取全部会包含 UnrealEngine，体积很大且需要 EpicGames 权限。确认继续？')) return;
+
+  const body = { action, path: target.path };
+  if (action === 'commit' || (action === 'commit_push' && target.status?.dirty)) {
     const message = prompt('提交信息', 'Update repository');
     if (!message) return;
     body.message = message;
   }
 
-  $('console').textContent = '执行中...';
+  if (target !== selected) {
+    selectNode(target);
+  }
+  $('console').textContent = '执行中，请等待。首次拉取可能需要较长时间...';
   try {
     const data = await api('/api/action', { method: 'POST', body: JSON.stringify(body) });
     $('console').textContent = data.output || '完成';
@@ -199,6 +204,11 @@ async function runAction(action) {
     $('console').textContent = err.message;
   }
 }
+
+function rootNode() {
+  return allNodes[0] || null;
+}
+
 
 function openPathDialog(key, title) {
   $('pathDialogTitle').textContent = title;
@@ -243,7 +253,10 @@ function openSubmoduleDialog() {
 }
 
 $('refreshBtn').onclick = refresh;
+$('initRecommendedBtn').onclick = () => runAction('init_recommended', rootNode());
+$('initAllBtn').onclick = () => runAction('init_all', rootNode());
 $('addPublicBtn').onclick = () => openPathDialog('public_repos', '新增公共仓库');
+
 $('addProjectBtn').onclick = () => openPathDialog('project_repos', '新增项目仓库');
 $('addSubmoduleBtn').onclick = openSubmoduleDialog;
 $('searchInput').oninput = render;

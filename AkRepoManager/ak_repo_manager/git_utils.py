@@ -139,7 +139,43 @@ def update_submodules(repo_path: str | Path) -> GitResult:
     return run_git(repo_path, ["submodule", "update", "--init", "--recursive"], 1200)
 
 
+def _submodule_paths(repo_path: str | Path) -> list[str]:
+    modules_file = Path(repo_path) / ".gitmodules"
+    if not modules_file.exists():
+        return []
+    result = run_git(repo_path, ["config", "-f", ".gitmodules", "--get-regexp", r"^submodule\..*\.path$"])
+    if not result.ok:
+        return []
+    paths: list[str] = []
+    for line in result.stdout.splitlines():
+        parts = line.split(maxsplit=1)
+        if len(parts) == 2:
+            paths.append(parts[1].strip())
+    return paths
+
+
+def init_submodules(repo_path: str | Path, include_unreal_engine: bool = True) -> GitResult:
+    paths = _submodule_paths(repo_path)
+    if not paths:
+        return GitResult(True, "当前仓库没有 .gitmodules，无需首次拉取。", "", 0)
+
+    selected_paths = paths
+    if not include_unreal_engine:
+        selected_paths = [path for path in paths if path.replace("\\", "/").lower() != "unrealengine"]
+
+    if not selected_paths:
+        return GitResult(True, "没有需要拉取的子模块。", "", 0)
+
+    command = ["submodule", "update", "--init", "--recursive", "--", *selected_paths]
+    result = run_git(repo_path, command, 7200)
+    title = "首次拉取完成。" if result.ok else "首次拉取失败。"
+    skipped = "\n已跳过 UnrealEngine。" if not include_unreal_engine and "UnrealEngine" in paths else ""
+    stdout = title + skipped + "\n\n" + (result.text or "无输出。")
+    return GitResult(result.ok, stdout, "", result.code)
+
+
 def add_existing_submodule(parent_path: str | Path, name: str, rel_path: str, url: str, branch: str = "main") -> GitResult:
+
     parent = Path(parent_path)
     target = parent / rel_path
     if target.exists() and is_git_repo(target):

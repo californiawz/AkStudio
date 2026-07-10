@@ -45,7 +45,10 @@
         </div>
         <div class="toolbar">
           <button class="primary" id="refreshBtn">扫描</button>
+          <button id="initRecommendedBtn">首次拉取推荐</button>
+          <button id="initAllBtn">首次拉取全部</button>
           <button id="addPublicBtn">新增公共仓库</button>
+
           <button id="addProjectBtn">新增项目仓库</button>
           <button id="addSubmoduleBtn">新增关联</button>
         </div>
@@ -89,9 +92,11 @@
             <div class="actions">
               <button class="primary wide-action" data-action="commit_push">提交并推送到远端</button>
               <button class="wide-action" data-action="open_folder">打开目录</button>
+              <button class="wide-action" data-action="init_selected">首次拉取该仓库及子模块</button>
               <button data-action="status">状态</button>
 
               <button data-action="pull">Pull</button>
+
               <button data-action="commit">仅本地提交</button>
               <button data-action="push">仅推送到远端</button>
               <button class="wide-action" data-action="update_submodules">更新子模块</button>
