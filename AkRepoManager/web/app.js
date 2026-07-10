@@ -7,21 +7,7 @@ let collapsedPaths = new Set();
 
 const $ = (id) => document.getElementById(id);
 
-function applyTheme(theme) {
-  document.body.dataset.theme = theme === 'dark' ? 'dark' : 'light';
-  localStorage.setItem('akrepo.theme', document.body.dataset.theme);
-}
 
-function initTheme() {
-  const queryTheme = new URLSearchParams(window.location.search).get('theme');
-  applyTheme(queryTheme || localStorage.getItem('akrepo.theme') || 'light');
-}
-
-window.addEventListener('message', (event) => {
-  if (event.data?.type === 'ak-theme') applyTheme(event.data.theme);
-});
-
-initTheme();
 
 async function api(url, options = {}) {
 

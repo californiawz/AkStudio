@@ -4,36 +4,7 @@ let activeAppId = 'home';
 const $ = (id) => document.getElementById(id);
 
 
-function currentTheme() {
-  return document.body.dataset.theme || 'light';
-}
 
-function withTheme(url) {
-  const parsed = new URL(url, window.location.href);
-  parsed.searchParams.set('theme', currentTheme());
-  return parsed.toString();
-}
-
-function syncOpenFramesTheme() {
-  document.querySelectorAll('.tool-frame').forEach((frame) => {
-    try {
-      frame.contentWindow?.postMessage({ type: 'ak-theme', theme: currentTheme() }, '*');
-    } catch (_) {}
-    const themed = withTheme(frame.src);
-    if (frame.src !== themed) frame.src = themed;
-  });
-}
-
-function applyTheme(theme) {
-  document.body.dataset.theme = theme;
-  localStorage.setItem('akstudio.portal.theme', theme);
-  $('themeToggleBtn').textContent = theme === 'dark' ? '白色模式' : '黑色模式';
-  syncOpenFramesTheme();
-}
-
-function toggleTheme() {
-  applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
-}
 
 
 function applySidebarCollapsed(collapsed) {
@@ -166,19 +137,20 @@ function openTab(app, url) {
 
   }
 
-  const themedUrl = withTheme(url);
   let frame = document.querySelector(`.tool-frame[data-tab="${id}"]`);
+
   if (!frame) {
     frame = document.createElement('iframe');
     frame.className = 'tool-frame';
     frame.dataset.tab = id;
     frame.allow = 'fullscreen';
-    frame.src = themedUrl;
+    frame.src = url;
     $('frameHost').appendChild(frame);
 
-  } else if (frame.src !== themedUrl) {
-    frame.src = themedUrl;
+  } else if (frame.src !== url) {
+    frame.src = url;
   }
+
 
   activateTab(id, app.id);
 }
@@ -213,8 +185,7 @@ $('exitFullscreenBtn').onclick = exitToolFullscreen;
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') exitToolFullscreen();
 });
-$('themeToggleBtn').onclick = toggleTheme;
-applyTheme(localStorage.getItem('akstudio.portal.theme') || 'light');
+
 
 $('sidebarToggleBtn').onclick = toggleSidebar;
 applySidebarCollapsed(localStorage.getItem('akstudio.portal.sidebarCollapsed') === '1');
