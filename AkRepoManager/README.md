@@ -61,7 +61,13 @@ E:\AkStudio\.akrepo\repos.json
 - 递归识别公共仓库、项目仓库、项目内仓库和嵌套模块
 - 显示路径、父仓库、分支、远程、提交状态
 - 搜索、筛选、折叠/展开
+- 统一能力入口：
+  - `AkRepoManager`：整体仓库管理
+  - `UnrealGameBuilerTool`：游戏项目构建发布工具
+  - `LuaProjectViewer`：项目 Lua 代码阅读器
+  - `Obsidian`：项目 AI 记忆库
 - 打开选中仓库目录
+
 - 集中首次拉取：
   - `首次拉取推荐`：拉取公共仓库和项目仓库，默认跳过超大的 `UnrealEngine`
   - `首次拉取全部`：包含 `UnrealEngine`
