@@ -1,4 +1,6 @@
 let apps = [];
+let notes = [];
+let currentNoteContent = '';
 let activeTabId = null;
 let activeAppId = 'home';
 const $ = (id) => document.getElementById(id);
@@ -74,6 +76,7 @@ function renderApps() {
     const stateClass = app.running ? 'running' : (app.exists ? 'ready' : 'missing');
     const card = document.createElement('article');
     card.className = 'app-card';
+    const launchText = app.kind === 'notes' ? '查看笔记' : '打开 / 启动';
     card.innerHTML = `
       <div class="app-head">
         <div>
@@ -85,7 +88,7 @@ function renderApps() {
       <p>${escapeHtml(app.description)}</p>
       <code>${escapeHtml(app.path)}</code>
       <div class="app-actions">
-        <button data-launch="${escapeHtml(app.id)}">打开 / 启动</button>
+        <button data-launch="${escapeHtml(app.id)}">${launchText}</button>
         ${app.kind === 'web' ? `<button data-launch-fullscreen="${escapeHtml(app.id)}">全屏</button>` : ''}
 
       </div>
@@ -104,20 +107,112 @@ function setActiveNav(id) {
   });
 }
 
+function setWorkspaceVisible(visible) {
+  document.querySelector('.workspace').classList.toggle('hidden', !visible);
+}
+
 function showHome() {
   exitToolFullscreen();
   activeTabId = null;
   activeAppId = 'home';
   $('homeView').classList.add('active');
+  $('notesView').classList.remove('active');
+  setWorkspaceVisible(false);
   document.querySelectorAll('.tool-frame').forEach((frame) => frame.classList.remove('active'));
   document.querySelectorAll('.tab').forEach((tab) => tab.classList.remove('active'));
   setActiveNav('home');
   updateFullscreenButton();
 }
 
+async function showNotes() {
+  exitToolFullscreen();
+  activeTabId = null;
+  activeAppId = 'obsidian';
+  $('homeView').classList.remove('active');
+  $('notesView').classList.add('active');
+  setWorkspaceVisible(false);
+  document.querySelectorAll('.tool-frame').forEach((frame) => frame.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach((tab) => tab.classList.remove('active'));
+  setActiveNav('obsidian');
+  updateFullscreenButton();
+  await loadNotes();
+}
+
+async function loadNotes() {
+  const data = await api('/api/notes');
+  notes = data.notes || [];
+  $('notesCount').textContent = `${notes.length} 篇`;
+  renderNotes();
+  if (notes.length && !$('noteContent').dataset.path) {
+    openNote(notes[0].path);
+  }
+}
+
+function renderNotes() {
+  const keyword = $('notesSearch').value.trim().toLowerCase();
+  const list = $('notesList');
+  const filtered = notes.filter((note) => `${note.name} ${note.folder} ${note.path}`.toLowerCase().includes(keyword));
+  list.innerHTML = '';
+  if (!filtered.length) {
+    list.innerHTML = '<div class="notes-empty">没有匹配的笔记</div>';
+    return;
+  }
+  for (const note of filtered) {
+    const item = document.createElement('button');
+    item.className = `note-item ${$('noteContent').dataset.path === note.path ? 'active' : ''}`;
+    item.innerHTML = `
+      <span>${escapeHtml(note.name)}</span>
+      <small>${escapeHtml(note.folder || '根目录')}</small>
+    `;
+    item.onclick = () => openNote(note.path);
+    list.appendChild(item);
+  }
+}
+
+function setNoteEditing(editing) {
+  const hasNote = Boolean($('noteContent').dataset.path);
+  $('noteContent').readOnly = !editing;
+  $('noteContent').classList.toggle('editing', editing);
+  $('noteEditBtn').classList.toggle('hidden', editing || !hasNote);
+  $('noteSaveBtn').classList.toggle('hidden', !editing || !hasNote);
+  $('noteCancelBtn').classList.toggle('hidden', !editing || !hasNote);
+}
+
+async function openNote(path) {
+  if (!$('noteContent').readOnly && $('noteContent').value !== currentNoteContent && !confirm('当前笔记有未保存修改，确定切换？')) return;
+  const data = await api(`/api/note?path=${encodeURIComponent(path)}`);
+  $('noteTitle').textContent = data.name || path;
+  $('notePath').textContent = data.path || path;
+  $('noteContent').value = data.content || '';
+  $('noteContent').dataset.path = data.path || path;
+  currentNoteContent = data.content || '';
+  setNoteEditing(false);
+  renderNotes();
+}
+
+async function saveCurrentNote() {
+  const path = $('noteContent').dataset.path;
+  if (!path) return;
+  const data = await api('/api/note/save', {
+    method: 'POST',
+    body: JSON.stringify({ path, content: $('noteContent').value }),
+  });
+  currentNoteContent = $('noteContent').value;
+  $('notePath').textContent = `${data.path} · 已保存`;
+  setNoteEditing(false);
+  await loadNotes();
+}
+
+function cancelNoteEdit() {
+  $('noteContent').value = currentNoteContent;
+  setNoteEditing(false);
+}
+
 
 function openTab(app, url) {
   $('homeView').classList.remove('active');
+  $('notesView').classList.remove('active');
+  setWorkspaceVisible(true);
   const id = `tab-${app.id}`;
   let tab = document.querySelector(`.tab[data-tab="${id}"]`);
   if (!tab) {
@@ -167,6 +262,7 @@ function openTab(app, url) {
 }
 
 function activateTab(tabId, appId) {
+  setWorkspaceVisible(true);
   activeTabId = tabId;
   activeAppId = appId;
   $('homeView').classList.remove('active');
@@ -180,6 +276,10 @@ async function launchApp(id, fullscreen = false) {
 
   const app = apps.find((item) => item.id === id);
   if (!app) return;
+  if (app.kind === 'notes') {
+    await showNotes();
+    return;
+  }
   try {
     const data = await api('/api/app/launch', { method: 'POST', body: JSON.stringify({ id }) });
     if (data.url) openTab(app, data.url);
@@ -201,6 +301,10 @@ document.addEventListener('keydown', (event) => {
 $('sidebarToggleBtn').onclick = toggleSidebar;
 applySidebarCollapsed(localStorage.getItem('akstudio.portal.sidebarCollapsed') === '1');
 $('refreshAppsBtn').onclick = loadApps;
+$('notesSearch').oninput = renderNotes;
+$('noteEditBtn').onclick = () => setNoteEditing(true);
+$('noteSaveBtn').onclick = saveCurrentNote;
+$('noteCancelBtn').onclick = cancelNoteEdit;
 
 document.querySelectorAll('[data-open-app]').forEach((item) => {
 

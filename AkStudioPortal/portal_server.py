@@ -9,11 +9,12 @@ import sys
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent
 AK_ROOT = ROOT.parent
 WEB_ROOT = ROOT / "web"
+OBSIDIAN_ROOT = AK_ROOT / "Obsidian"
 
 
 def port_open(port: int) -> bool:
@@ -66,9 +67,9 @@ def apps() -> list[dict]:
             "id": "obsidian",
             "name": "Obsidian",
             "title": "项目 AI 记忆库",
-            "description": "打开项目 AI 记忆库目录。内容仍由 Obsidian 仓库维护。",
-            "path": str(AK_ROOT / "Obsidian"),
-            "kind": "folder",
+            "description": "直接浏览项目 AI 记忆库 Markdown 笔记，内容仍由 Obsidian 仓库维护。",
+            "path": str(OBSIDIAN_ROOT),
+            "kind": "notes",
         },
     ]
 
@@ -99,6 +100,9 @@ def launch_app(app_id: str) -> dict:
     if not path.exists():
         return {"ok": False, "error": f"模块目录不存在，请先首次拉取: {path}"}
 
+    if app["kind"] == "notes":
+        return {"ok": True, "message": "记忆库已准备就绪"}
+
     if app["kind"] == "folder":
         os.startfile(str(path))
         return {"ok": True, "message": f"已打开目录: {path}"}
@@ -112,6 +116,63 @@ def launch_app(app_id: str) -> dict:
             time.sleep(0.2)
 
     return {"ok": True, "url": app["url"], "message": "入口已准备就绪"}
+
+
+def safe_note_path(rel_path: str) -> Path | None:
+    root = OBSIDIAN_ROOT.resolve()
+    target = (root / rel_path).resolve()
+    if not str(target).startswith(str(root)) or target.suffix.lower() != ".md":
+        return None
+    return target
+
+
+def list_notes() -> list[dict]:
+    if not OBSIDIAN_ROOT.exists():
+        return []
+    notes: list[dict] = []
+    for path in OBSIDIAN_ROOT.rglob("*.md"):
+        parts = set(path.relative_to(OBSIDIAN_ROOT).parts)
+        if ".git" in parts or ".obsidian" in parts:
+            continue
+        stat = path.stat()
+        rel_path = path.relative_to(OBSIDIAN_ROOT).as_posix()
+        notes.append(
+            {
+                "path": rel_path,
+                "name": path.stem,
+                "folder": path.parent.relative_to(OBSIDIAN_ROOT).as_posix() if path.parent != OBSIDIAN_ROOT else "",
+                "size": stat.st_size,
+                "updatedAt": stat.st_mtime,
+            }
+        )
+    return sorted(notes, key=lambda item: (item["folder"], item["name"].lower()))
+
+
+def read_note(rel_path: str) -> dict:
+    target = safe_note_path(rel_path)
+    if not target or not target.exists() or not target.is_file():
+        return {"ok": False, "error": "笔记不存在"}
+    return {
+        "ok": True,
+        "path": target.relative_to(OBSIDIAN_ROOT).as_posix(),
+        "name": target.stem,
+        "content": target.read_text(encoding="utf-8", errors="replace"),
+    }
+
+
+def save_note(rel_path: str, content: str) -> dict:
+    target = safe_note_path(rel_path)
+    if not target or not target.exists() or not target.is_file():
+        return {"ok": False, "error": "笔记不存在"}
+    target.write_text(content, encoding="utf-8", newline="")
+    stat = target.stat()
+    return {
+        "ok": True,
+        "path": target.relative_to(OBSIDIAN_ROOT).as_posix(),
+        "name": target.stem,
+        "size": stat.st_size,
+        "updatedAt": stat.st_mtime,
+    }
 
 
 def json_response(handler: BaseHTTPRequestHandler, payload: dict, code: int = 200) -> None:
@@ -131,6 +192,14 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/apps":
             json_response(self, {"ok": True, "apps": [public_app(item) for item in apps()]})
             return
+        if parsed.path == "/api/notes":
+            json_response(self, {"ok": True, "notes": list_notes(), "root": str(OBSIDIAN_ROOT)})
+            return
+        if parsed.path == "/api/note":
+            query = parse_qs(parsed.query)
+            result = read_note((query.get("path") or [""])[0])
+            json_response(self, result, 200 if result.get("ok") else 404)
+            return
         self.serve_static(parsed.path)
 
     def do_POST(self) -> None:
@@ -144,6 +213,10 @@ class Handler(BaseHTTPRequestHandler):
 
         if parsed.path == "/api/app/launch":
             result = launch_app(str(body.get("id", "")))
+            json_response(self, result, 200 if result.get("ok") else 400)
+            return
+        if parsed.path == "/api/note/save":
+            result = save_note(str(body.get("path", "")), str(body.get("content", "")))
             json_response(self, result, 200 if result.get("ok") else 400)
             return
         json_response(self, {"ok": False, "error": "接口不存在"}, 404)

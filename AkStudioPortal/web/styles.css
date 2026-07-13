@@ -100,6 +100,31 @@ h1 { margin: 0; font-size: 20px; }
 .app-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .app-card button { width: max-content; }
 
+.notes-layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; height: calc(100vh - 158px); min-height: 0; }
+.notes-panel, .note-reader { border: 1px solid var(--border); border-radius: 14px; background: linear-gradient(145deg, rgba(13,15,20,.94), rgba(7,9,14,.88)); box-shadow: var(--shadow), inset 0 1px rgba(125,211,252,.06); overflow: hidden; }
+.notes-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.notes-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 14px 10px; border-bottom: 1px solid rgba(125,211,252,.12); }
+.notes-head span { color: var(--muted); font-size: 12px; }
+.notes-search { margin: 12px; width: calc(100% - 24px); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--text); background: rgba(1,4,9,.58); outline: none; }
+.notes-search:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(88,166,255,.12); }
+.notes-list { padding: 0 8px 10px; overflow: auto; }
+.note-item { width: 100%; display: grid; gap: 3px; text-align: left; border: 0; border-radius: 8px; padding: 9px 10px; color: var(--text); background: transparent; }
+.note-item:hover, .note-item.active { background: var(--active-bg); }
+.note-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.note-item small { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notes-empty { color: var(--muted); padding: 24px 10px; text-align: center; }
+.note-reader { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.note-reader-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 18px; border-bottom: 1px solid rgba(125,211,252,.12); }
+.note-reader h3 { margin: 0; font-size: 18px; }
+.note-reader p { margin: 5px 0 0; color: var(--muted); }
+.note-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+.note-actions button { border: 1px solid var(--border); color: var(--text); background: var(--button-bg); border-radius: 6px; padding: 5px 11px; font-weight: 600; font-size: 12px; }
+.note-actions button:hover { background: var(--button-hover); }
+#noteSaveBtn { color: #fff; background: #238636; border-color: #238636; }
+#noteSaveBtn:hover { background: #2ea043; }
+.note-content { flex: 1; width: 100%; min-height: 0; resize: none; border: 0; outline: none; margin: 0; padding: 20px 22px; color: var(--text); background: rgba(1,4,9,.42); overflow: auto; white-space: pre-wrap; word-break: break-word; font: 13px/1.65 ui-monospace, SFMono-Regular, Consolas, "Microsoft YaHei", monospace; }
+.note-content.editing { background: rgba(1,4,9,.62); box-shadow: inset 0 0 0 1px rgba(88,166,255,.22); }
+
 .badge { border: 1px solid var(--border); border-radius: 999px; padding: 2px 7px; font-size: 12px; font-weight: 500; white-space: nowrap; }
 .badge.running { color: var(--green); background: var(--green-bg); border-color: rgba(63,185,80,.28); }
 .badge.ready { color: var(--blue); background: var(--active-bg); border-color: rgba(88,166,255,.28); }

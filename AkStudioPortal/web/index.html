@@ -56,7 +56,34 @@
         <div id="appGrid" class="app-grid"></div>
       </section>
 
-      <section class="workspace">
+      <section id="notesView" class="view notes-view">
+        <div class="notes-layout">
+          <aside class="notes-panel">
+            <div class="notes-head">
+              <strong>AI 记忆库</strong>
+              <span id="notesCount">0 篇</span>
+            </div>
+            <input id="notesSearch" class="notes-search" placeholder="搜索笔记文件..." />
+            <div id="notesList" class="notes-list"></div>
+          </aside>
+          <article class="note-reader">
+            <div class="note-reader-head">
+              <div>
+                <h3 id="noteTitle">选择一篇笔记</h3>
+                <p id="notePath">Obsidian Markdown 笔记会直接在这里展示。</p>
+              </div>
+              <div class="note-actions">
+                <button id="noteEditBtn" class="hidden">编辑</button>
+                <button id="noteSaveBtn" class="hidden">保存</button>
+                <button id="noteCancelBtn" class="hidden">取消</button>
+              </div>
+            </div>
+            <textarea id="noteContent" class="note-content" readonly>请选择左侧笔记。</textarea>
+          </article>
+        </div>
+      </section>
+
+      <section class="workspace hidden">
         <div id="tabBar" class="tab-bar"></div>
         <div id="frameHost" class="frame-host"></div>
       </section>
